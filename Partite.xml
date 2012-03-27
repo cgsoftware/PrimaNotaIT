@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    
+        <!-- Sequences for partite -->
+        <record id="seq_type_partite" model="ir.sequence.type">
+            <field name="name">Partite</field>
+            <field name="code">partite</field>
+        </record>
+
+        <record id="seq_effetti" model="ir.sequence">
+            <field name="name">Num Partite</field>
+            <field name="code">partite</field>
+            <field name="prefix">PC-%(year)s-</field>
+            <field name="padding">6</field>
+        </record>
+    
+      
+            <record id="view_partite_tree" model="ir.ui.view">
+            <field name="name">account.partite.tree</field>
+            <field name="model">account.partite</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree   colors="red:totale_da_saldare&lt;0;blue:totale_da_saldare&gt;=0 ;black:totale_da_saldaree&gt;=0 " string="Partite Partner">
+                
+                <!-- colors="blue:totale_da_saldare <= 0 ;black:totale_da_saldare > 0" -->
+                	<field name='name' select="1"  />
+					<field name='partner_id' select="1"  />                                
+                    <field name="data_doc" select="1" />                    
+                    <field name="numero_doc" select="1"/>
+                    <field name="totale_partita"/>
+                    <field name="totale_saldo" />
+                    <field name="totale_da_saldare" />                    
+                    <field name="pagamento_id" select="1" />
+                    <field name="data_reg" />
+                    <field name="num_reg" />
+
+                </tree>
+            </field>
+        </record>
+  
+       <!-- attrs="{'readonly':[('type','!=','code')],'required':[('type','=','code')]}" -->
+      
+
+        <record id="view_partite_form" model="ir.ui.view">
+            <field name="name">account.partite.form</field>
+            <field name="model">account.partite</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Manutenzione Partite">
+                    <group colspan="4" col="4" >
+                        <field name='name' />
+                        <newline></newline>
+                        <group colspan="4" col="4" string= "Dati Registrazione">
+                        <field name='riga_reg_pnt' on_change="onchange_riga(riga_reg_pnt,context)" />
+                        <field name='reg_pnt' />
+                        <field name='num_reg' />
+                        <field name="data_reg"/>
+                        </group>
+                        <group colspan="4" col="4" string= "Dati Documento">
+                        <field name="data_doc" readonly="False"/>
+                        <field name='numero_doc' />
+                        <field name='tipo_documento' />
+                        <field name='partner_id' />
+                        <field name='pagamento_id' />
+                        </group>
+                        <group colspan="4" col="4" string= "Dati Partita">
+                        <field name='totale_partita' />
+                        <field name='totale_saldo' />
+                        <field name='totale_da_saldare' />
+                        </group>
+                    </group>
+                    <notebook colspan="4">
+                        <page string="Scadenze">
+                            <field colspan="4" name="par_scadenze" nolabel="1" height="250" widget="one2many_list"    >
+                                <!--  default_get="{'lines':line_id ,'date':date,'journal':journal_id, 'journal_id':journal_id, 'period_id':period_id,'causale_id':causale_id ,'ref':ref,'partner_id':partner_id}" -->
+                             
+                                <form string="Scadenza / Partita">
+                                    <group col="4" colspan="4">
+                                       <!--  <field name="name" invisible="0"/>  -->
+                                        <field name="data_scadenza" />
+                                        <field name='importo' invisible="0" />
+                                        <field name="saldato" />
+                                        <field name="da_saldare" invisible="0"/>
+                                    </group>
+                                    <notebook colspan="4">
+                                        <page string="Operazioni Di Saldo">
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Dettaglio Registrazioni"/>
+                                                <field colspan="4" name="par_saldi" nolabel="1" height="250" widget="one2many_list"    >
+ 		                               <tree  editable="top" string="Dettaglio Operazioni su Scadenza Partita">
+                        <!--  colors="blue:state in ('draft');black:state in ('posted')" -->       
+                                    <field name="registrazione" />
+                                    <field name="saldo"/>
+		                                </tree>                                                
+                                                
+                                                
+                                                </field>
+      
+                                            </group>
+
+                                        </page>
+                                    </notebook>
+                                </form>
+                                <tree  editable="top" string="Dettaglio Scadenze Partita">
+                        <!--  colors="blue:state in ('draft');black:state in ('posted')" -->       
+                                    <field name="data_scadenza" />
+                                    <field name="importo"/>
+                                    <field name="saldato" />
+                                    <field name="da_saldare" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+        
+            <record id="action_partite_tree" model="ir.actions.act_window">
+            <field name="name">Partite Aperte</field>
+            <field name="res_model">account.partite</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field eval="False" name="view_id"/>
+
+        </record>
+	
+	
+	 <record id="action_partite_tree_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_partite_tree"/>
+            <field name="act_window_id" ref="action_partite_tree"/>
+        </record>
+
+        <record id="action_partite_tree_view2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_partite_form"/>
+            <field name="act_window_id" ref="action_partite_tree"/>
+        </record>
+
+        
+        <menuitem action="action_partite_tree" id="menu_partite_form" parent="account.menu_finance_entries"/>
+        
+    
+    
+    
+        </data>
+</openerp>
+    

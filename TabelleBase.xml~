@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+      
+      	 <!-- DATI SUL PIANO DEI CONTI -->
+          <record model="ir.ui.view" id="view_account_form2it">
+            <field name="name">account.account.form2it</field>
+            <field name="model">account.account</field>
+            <field name="inherit_id" ref="account.view_account_form"/>
+                <field name="arch" type="xml">
+		  <field name="user_type" position="after">
+		    <field name="sez_bilancio" />
+		    <field name="tipo_sottoconto" />
+	      </field>
+	      <notebook position="inside">
+                        <page string="Saldi">
+			  <field name="righe_saldi" nolabel="1" mode="tree,form" string="Saldi Per Esercizio">
+					  
+	                			<tree editable="top">
+	                				<field name="fiscalyear_id"  />
+	                				<field name="dare_iniziale" />
+	                				<field name="avere_iniziale" />	      
+							<field name="dare_periodo" />	 
+							<field name="avere_periodo" />	 
+							<field name="dare_finale" />	 
+							<field name="avere_finale" />	 
+							<field name="avere_iniziale" />	 
+							<field name="saldo_attuale" />	 
+							
+	                			</tree>
+	                			<form>
+	                				<field name="fiscalyear_id"  />
+	                				<field name="dare_iniziale" />
+	                				<field name="avere_iniziale" />	      
+							<field name="dare_periodo" />	 
+							<field name="avere_periodo" />	 
+							<field name="dare_finale" />	 
+							<field name="avere_finale" />	 
+							<field name="avere_iniziale" />	 
+							<field name="saldo_attuale" />	 
+	                			</form>
+	                		</field>
+
+                        </page>
+ 		
+	      </notebook>
+ 		  </field>
+        </record>
+     
+      
+      	 <!-- DATI SULLA DEFINIZIONE DELL' ANNO FISCALE -->
+      
+          <record model="ir.ui.view" id="account_fyscalyear_dativa">
+            <field name="name">account.fyscalyear.dativa</field>
+            <field name="model">account.fiscalyear</field>
+            <field name="inherit_id" ref="account.view_account_fiscalyear_form"/>
+                <field name="arch" type="xml">
+		   <field name="period_ids" position="after">
+					 <newline/>
+			             <group col="8" colspan="4">
+					<field name="tipo_liquidazione"/>
+					<field name="plafond_iniziale" />
+					<field name="plafond_residuo" />
+					<field name="credito_iva_iniziale" />
+					<field name="debito_iva_27" />										
+					<field name="percentuale_prorata" />
+					<field name="maggiorazione_trimestrale" />
+					<field name="perc_acconto_iva" />
+					<field name="acconto_iva" />					
+					<field name="versamento_minimo" />
+				      </group>
+					 <newline/>
+
+	                		<field name="righe_utilizzi_crediti" nolabel="1" mode="tree,form" string="Crediti Utilizzati">
+					  
+	                			<tree editable="top">
+	                				<field name="data_utilizzo"  />
+	                				<field name="tipo_utilizzo" />
+	                				<field name="importo_utilizzato" />	                				
+	                			</tree>
+	                			<form>
+	                				<field name="data_utilizzo"  />
+	                				<field name="tipo_utilizzo" />
+	                				<field name="importo_utilizzato" />	                				
+	                			</form>
+	                		</field>
+				 <newline/>
+
+	                		<field name="righe_protocolli" nolabel="1" mode="tree,form" string="Protocolli Registri Iva">
+	                			<tree editable="top">
+	                				<field name="registro"  />
+	                				<field name="protocollo" />
+	                				<field name="data_registrazione" />	                				
+	                			</tree>
+	                			<form>
+	                				<field name="registro"  />
+	                				<field name="protocollo" />
+	                				<field name="data_registrazione" />	                				
+	                			</form>
+	                		</field>
+	                		
+		      </field>
+
+		  </field>
+        </record>
+      
+      
+       <!-- Tax Aggiunge il flag iva indetraibile -->
+              <record id="view_tax_form2it" model="ir.ui.view">
+            <field name="name">account.tax.form2it</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+                <field name="arch" type="xml">
+		   <field name="active" position="after">
+			<field name="indetraibile"/>
+		   </field>
+		 </field>
+	      </record>
+	  
+	       <!-- PERIODI E PROGRESSIVI IVA -->  
+        <record id="view_registri_tree" model="ir.ui.view">	       
+            <field name="name">account.registri_tree</field>
+            <field name="model">account.registri_period</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Periodi Registri Iva">
+                    <field name="period_id" select="1"/>
+                    <field name="tipo_registro" select="1"/>
+                    <field name="num_registro_iva" select="1"/>
+                </tree>
+            </field>
+        </record>
+	  
+        <record id="view_registri_form" model="ir.ui.view">
+            <field name="name">account.registri_form</field>
+            <field name="model">account.registri_period</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                    <field name="period_id" select="1"/>
+		    <field name="fiscalyear_id" />
+                    <field name="tipo_registro" select="1"/>
+                    <field name="num_registro_iva" select="1"/>
+	    <group colspan="4" col="6" string="Dati di Stampa">
+	       <field name="ultima_pagina" />
+	       <field name="totale_dare" />
+	       <field name="totale_avere" />
+	       <field name="data_ultima_riga" />
+	       <field name="data_ultima_stampa" />
+	       <field name="data_versamento" />
+	       <field name="banca_versamento" />
+	        <field name="importo_iva_credito" />
+		 <field name="importo_iva_dovuta" />
+	    </group>
+	               <field name="righe_progressivi_iva" nolabel="1" mode="tree,form" string="Progressivi Iva">
+					  
+	                			<tree editable="top">
+	                				<field name="codice_iva"  />
+	                				<field name="totale_imponibile" />
+	                				<field name="totale_imposta" />	                				
+	                			</tree>
+	                			<form>
+	                				<field name="codice_iva"  />
+	                				<field name="totale_imponibile" />
+	                				<field name="totale_imposta" />	                				
+	                			</form>
+	                		</field>
+	      
+            </field>
+        </record>
+	
+            <record id="action_registri_tree" model="ir.actions.act_window">
+            <field name="name">Dati e Progressivi Registri</field>
+            <field name="res_model">account.registri_period</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field eval="False" name="view_id"/>
+ <!--           <field name="domain">[('type','=','in_invoice')]</field>
+            <field name="context">{'type':'in_invoice', 'journal_type': 'purchase'}</field>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
+            <field name="help">With Supplier Invoices you can enter and manage invoices issued by your suppliers. OpenERP can also generate draft invoices automatically from purchase orders or receipts. This way, you can control the invoice from your supplier according to what you purchased or received.</field>
+           -  -->
+        </record>
+        <menuitem action="action_registri_tree" id="menu_registri_form" parent="account.menu_finance_entries"/>	
+	
+        </data>
+</openerp>

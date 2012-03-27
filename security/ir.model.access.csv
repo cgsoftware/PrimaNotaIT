@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_account_progr,account.account_progr,model_account_account_progr,,1,1,1,1
+access_account_fiscalyear_protocolli,account.fiscalyear.protocolli,model_account_fiscalyear_protocolli,,1,1,1,1
+access_account_registri_period,account.registri_period,model_account_registri_period,,1,1,1,1
+access_progressivi_iva_period,progressivi.iva.period,model_progressivi_iva_period,,1,1,1,1
+access_causcont,causcont,model_causcont,,1,1,1,1
+access_auto_causcont_head,auto.causcont.head,model_auto_causcont_head,,1,1,1,1
+access_auto_causcont_line,auto.causcont.line,model_auto_causcont_line,,1,1,1,1

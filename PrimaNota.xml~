@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+      
+            <record id="view_primanota_tree" model="ir.ui.view">
+            <field name="name">account.primanota.tree</field>
+            <field name="model">account.move</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:state in ('draft');black:state in ('posted')" string="Journal Entries">
+                    <field name="name"/>
+                    <field name="ref"/>
+                    <field name="date"/>
+                    <field name="period_id"/>
+                    <field name="journal_id"/>
+                    <field name="partner_id"/>
+                    <field name="amount" sum="Total Amount"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+  
+      
+      
+
+        <record id="view_primanota_form" model="ir.ui.view">
+            <field name="name">account.primanota.form</field>
+            <field name="model">account.move</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Journal Entries">
+                    <group colspan="4" col="6">
+                        <field name="name" readonly="False"/>
+                        <field name="date"/>        
+     					<field name="fiscalyear_id"/>     
+     					 <field name="period_id"/>
+     					  <field name='causale_id'/>     					                               
+                        <field name="ref"/>
+                        <field name="to_check" groups="base.group_extended"/>
+                        <field name="journal_id"/>
+                        <field name="company_id" required="1" groups="base.group_multi_company"/>
+                        <field name="partner_id" invisible="0"/>
+                        <field name="numero_doc" invisible="0"/>
+                        <field name="data_doc" invisible="0"/>
+                        <field name="protocollo" invisible="0"/>                                             
+                        <field name="amount" invisible="0"/>
+                        
+                    </group>
+                    <notebook colspan="4">
+                        <page string="Journal Items">
+                            <field colspan="4" name="line_id" nolabel="1" height="250" widget="one2many_list" default_get="{'lines':line_id , 'journal':journal_id, 'period_id':period_id}">
+                                <form string="Journal Item">
+                                    <group col="6" colspan="4">
+                                        <field name="name" invisible="0"/>
+                                        <field name="ref" invisible="1"/>
+                                        <field name="partner_id" on_change="onchange_partner_id(False,partner_id,account_id,debit,credit,date)"/>
+
+                                        <field name="journal_id" invisible="1"/>
+                                        <field name="period_id" invisible="1" />
+                                        <field name="company_id" invisible="1"  required="1" groups="base.group_multi_company"/>
+                                    </group>
+                                    <notebook colspan="4">
+                                        <page string="Information">
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Amount"/>
+                                                <field name="account_id" domain="[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]"/>
+                                                <field name="debit"/>
+                                                <field name="credit"/>
+                                                <field name="quantity" invisible="1"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Accounting Documents"/>
+                                                <field name="invoice"/>
+                                                <field name="move_id" required="False"/>
+                                                <field name="statement_id"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Dates"/>
+                                                <field name="date"/>
+                                                <field name="date_maturity"/>
+                                                <field name="date_created"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Taxes"/>
+                                                <field name="tax_code_id"/>
+                                                <field name="tax_amount"/>
+                                                <field name="account_tax_id" domain="[('parent_id','=',False)]"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Currency"/>
+                                                <field name="currency_id"/>
+                                                <field name="amount_currency"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="Reconciliation"/>
+                                                <field name="reconcile_id" invisible="1" />
+                                                <field name="reconcile_partial_id" invisible="1"/>
+                                            </group>
+
+                                            <group col="2" colspan="2">
+                                                <separator colspan="2" string="States"/>
+                                                <field name="state"/>
+                                                <field name="blocked"/>
+                                            </group>
+
+                                            <group col="2" colspan="2" groups="base.group_extended">
+                                                <separator colspan="2" string="Analytic"/>
+                                                <field name="analytic_account_id" domain="[('parent_id','!=',False)]" groups="analytic.group_analytic_accounting"/>
+                                            </group>
+                                            <separator string="Narration" colspan="4"/>
+                                            <field name="narration" colspan="4" nolabel="1"/>
+                                        </page>
+                                        <page string="Analytic Lines" groups="base.group_analytic_accounting">
+                                            <field colspan="4" name="analytic_lines" nolabel="1" context="{'default_general_account_id':account_id, 'default_name': name, 'default_date':date, 'amount': (debit or 0.0)-(credit or 0.0)}"/>
+                                        </page>
+                                    </notebook>
+                                </form>
+                                <tree colors="blue:state in ('draft');black:state in ('posted')" editable="top" string="Journal Items">
+                                    <field name="ref" invisible="1" />
+                                    <field name="invoice" invisible="1"/>
+                                    <field name="name"/>
+                                    <field name="partner_id" on_change="onchange_partner_id(False,partner_id,account_id,debit,credit,parent.date,parent.journal_id)"/>
+                                    <field name="account_id" domain="[('journal_id','=',parent.journal_id)]"/>
+                                    <field name="date_maturity" invisible="1" />
+                   				    <field name="tax_code_id"/>
+                                    <field name="tax_amount"/>                                                
+                                    <field name="debit" sum="Total Debit"/>
+                                    <field name="credit" sum="Total Credit"/>
+                                    <field name="analytic_account_id" domain="[('parent_id','!=',False)]" groups="analytic.group_analytic_accounting"/>
+                                    <field name="amount_currency" groups="base.group_extended"/>
+                                    <field name="currency_id" groups="base.group_extended"/>
+                                    <field name="state"/>
+                                    <field name="reconcile_id" invisible="1" />
+                                    <field name="reconcile_partial_id" invisible="1" groups="base.group_extended"/>
+                                </tree>
+                            </field>
+                            <separator colspan="4" string="Narration"/>
+                            <field name="narration" colspan="4" nolabel="1" height="50"/>
+                            <group col="4" colspan="4">
+                                <field name="state" select="1"/>
+                                <button name="button_cancel" states="posted" string="Cancel" type="object" icon="gtk-cancel"/>
+                                <button name="button_validate" states="draft" string="Approve" type="object" icon="terp-camera_test"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+        
+            <record id="action_primanota_tree" model="ir.actions.act_window">
+            <field name="name">Prima Nota</field>
+            <field name="res_model">account.move</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar,graph</field>
+            <field eval="False" name="view_id"/>
+ <!--           <field name="domain">[('type','=','in_invoice')]</field>
+            <field name="context">{'type':'in_invoice', 'journal_type': 'purchase'}</field>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
+            <field name="help">With Supplier Invoices you can enter and manage invoices issued by your suppliers. OpenERP can also generate draft invoices automatically from purchase orders or receipts. This way, you can control the invoice from your supplier according to what you purchased or received.</field>
+           -  -->
+        </record>
+	
+	
+	 <record id="action_primanota_tree_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_primanota_tree"/>
+            <field name="act_window_id" ref="action_primanota_tree"/>
+        </record>
+
+        <record id="action_primanota_tree_view2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_primanota_form"/>
+            <field name="act_window_id" ref="action_primanota_tree"/>
+        </record>
+
+        
+        <menuitem action="action_primanota_form" id="menu_primanota_form" parent="account.menu_finance_entries"/>
+        
+    
+    
+    
+        </data>
+</openerp>
+    
