@@ -31,14 +31,15 @@
             <field name="arch" type="xml">
                 <form string="Movimenti Prima Nota">
                     <group colspan="4" col="6">
-                        <field name='causale_id' on_change="onchange_causale_id(causale_id,context)" />
+                        <field name='causale_id' on_change="onchange_causale_id(causale_id,period_id,date,context)" />
                         <field name="date"/>
                         <field name="name" readonly="False"/>
                         <newline></newline>
                         <field name="data_doc" invisible="0" attrs="{'required':[('flag_ddoc','=','O')],'readonly':[('flag_ddoc','=','N')]}"/>  
-                        <field name="num_registro" invisible="1"/> 
+                        <field name="num_registro" invisible="1"/>
+                        <field name="registro" invisible="1"/>  
                         <field name="numero_doc" invisible="0" attrs="{'required':[('flag_ndoc','=','O')],'readonly':[('flag_ndoc','=','N')]}" />    
-                        <field name="protocollo" invisible="0"/>   
+                        <field name="protocollo" invisible="0" attrs="{'required':[('registro','!=','NR')],'readonly':[('flag_ndoc','=','N')]}"/>   
                        <newline></newline>         
                        <field name="ref" string="Descrizione"/>
                         <field name="period_id"/>                                       

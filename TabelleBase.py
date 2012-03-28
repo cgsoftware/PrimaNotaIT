@@ -71,7 +71,7 @@ account_account_progr()
 
 class account_fiscalyear_protocolli(osv.osv):
     _name = 'account.fiscalyear.protocolli'
-    _description = ' Utilizzi del credito iva di inizio anno'
+    _description = ' Protocolli Registri Iva'
     
     _columns = {
                 'fiscalyear_id': fields.many2one('account.fiscalyear', 'Fiscal Year', required=True, select=True),

@@ -169,7 +169,55 @@ class account_move(osv.osv):
               
               }
     
-    def onchange_causale_id(self,cr,uid,ids,causale_id,context):
+    def check_protocollo(self,cr,uid,ids,causale_id,period_id,date,check,proto,context):
+        protocollo = 0
+        prot_obj = self.pool.get('account.fiscalyear.protocolli')
+        if period_id:
+            fiscalyear_id = self.pool.get('account.period').browse(cr,uid,period_id,context).fiscalyear_id.id
+        else:
+            fiscalyear_id=False
+        if causale_id:
+            causale = self.pool.get('causcont').browse(cr,uid,causale_id)
+            if causale.tipo_registro!='NR':
+                # è un registro iva
+                cerca = [('fiscalyear_id','=',fiscalyear_id),('tipo_registro','=',causale.tipo_registro),('num_registro_iva','=',causale.num_registro_iva)]
+                #import pdb;pdb.set_trace()
+                ids_prot = prot_obj.search(cr,uid,cerca)
+                if ids_prot:
+                    rg_prot = prot_obj.browse(cr,uid,ids_prot[0])
+                    if check: # solo controllo
+                     if rg_prot.data_registrazione>date:
+                        raise osv.except_osv(_('Errore !'), _('Data Registrazione Inferiore a Data Ultimo protocollo'))
+                     else:
+                        protocollo = 1 + rg_prot.protocollo
+                    else:
+                        # deve aggiornare il num. di protocollo se è il caso
+                        if rg_prot.protocollo<proto: 
+                            # deve aggrionare altrimenti è ok
+                            if rg_prot.data_registrazione>date:
+                                   raise osv.except_osv(_('Errore !'), _('Data Registrazione Inferiore a Data Ultimo protocollo'))
+                                   return False
+                            else:
+                                return prot_obj.write(cr,uid,ids_prot,{'protocollo':proto,'data_registrazione':date})
+                        else:
+                            return True
+                else:
+                    rg_prot= {
+                             'fiscalyear_id':fiscalyear_id,
+                             'tipo_registro':causale.tipo_registro,
+                             'num_registro_iva':causale.num_registro_iva,
+                             'protocollo':0,
+                             'data_registrazione':date,
+                             }
+                    ids_prot = prot_obj.create(cr,uid,rg_prot,context)
+                    protocollo = 1
+                    
+                        
+        return protocollo
+    
+
+    
+    def onchange_causale_id(self,cr,uid,ids,causale_id,period_id,date,context):
         res ={}
         
         if causale_id:
@@ -187,6 +235,7 @@ class account_move(osv.osv):
             res["flag_chiusura"]= causale.flag_chiusura
             res["flag_cliente"]= causale.flag_cliente
             res["flag_fornitore"]= causale.flag_fornitore
+            res["protocollo"]=self.check_protocollo(cr, uid, ids, causale_id, period_id, date,True,0, context)
            
         #import pdb;pdb.set_trace()
         return  {'value':res}
@@ -262,6 +311,16 @@ class account_move(osv.osv):
             pass
             result = self.check_partite(cr,uid,ids,context)
             #import pdb;pdb.set_trace()
+        return result
+
+    def create(self, cr, uid, vals, context=None):
+        if context is None:
+            context = {}
+        result = super(account_move, self).create(cr, uid, vals, context)
+        if result:
+            ok_prot = self.check_protocollo(cr, uid, [result], vals['causale_id'], vals['period_id'], vals['date'],False,vals['protocollo'], context)
+            if not ok_prot:
+                result = False
         return result
 
 account_move()
