@@ -8,10 +8,11 @@
             <field name="type">tree</field>
             <field name="arch" type="xml">
                 <tree colors="blue:state in ('draft');black:state in ('posted')" string="Journal Entries">
+                	<field name="date"/>
 					<field name='causale_id' select="1"  />                                
                     <field name="name"/>
                     <field name="ref" string="Descrizione" />
-                    <field name="date"/>
+                    
                     <field name="period_id"/>
                     <field name="journal_id" invisible="1"/>
                     <field name="partner_id"/>
@@ -31,8 +32,8 @@
             <field name="arch" type="xml">
                 <form string="Movimenti Prima Nota">
                     <group colspan="4" col="6">
-                        <field name='causale_id' on_change="onchange_causale_id(causale_id,period_id,date,context)" />
-                        <field name="date"/>
+                    	<field name="date" on_change="onchange_date(date,context)" />
+                        <field name='causale_id' on_change="onchange_causale_id(causale_id,period_id,date,context)" select="1"/>                        
                         <field name="name" readonly="False"/>
                         <newline></newline>
                         <field name="data_doc" invisible="0" attrs="{'required':[('flag_ddoc','=','O')],'readonly':[('flag_ddoc','=','N')]}"/>  

@@ -6,3 +6,8 @@ access_progressivi_iva_period,progressivi.iva.period,model_progressivi_iva_perio
 access_causcont,causcont,model_causcont,,1,1,1,1
 access_auto_causcont_head,auto.causcont.head,model_auto_causcont_head,,1,1,1,1
 access_auto_causcont_line,auto.causcont.line,model_auto_causcont_line,,1,1,1,1
+access_account_partite,account.partite,model_account_partite,,1,1,1,1
+access_account_partite_scadenze,account.partite_scadenze,model_account_partite_scadenze,,1,1,1,1
+access_account_partite_incassi,account.partite_saldi,model_account_partite_saldi,,1,1,1,1
+access_salda_partite,salda.partite,model_salda_partite,,1,1,1,1
+access_salda_partite_righe,salda.partite.righe,model_salda_partite_righe,,1,1,1,1

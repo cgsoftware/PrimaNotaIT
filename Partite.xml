@@ -9,7 +9,7 @@
             <field name="code">partite</field>
         </record>
 
-        <record id="seq_effetti" model="ir.sequence">
+        <record id="seq_partite" model="ir.sequence">
             <field name="name">Num Partite</field>
             <field name="code">partite</field>
             <field name="prefix">PC-%(year)s-</field>

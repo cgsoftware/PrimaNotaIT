@@ -53,12 +53,12 @@ class account_partite(osv.osv):
                     'name': fields.char('Numero Partita', size=30, required=True, readonly=False, select=True),
                     'riga_reg_pnt': fields.many2one('account.move.line', 'Riga Prima Nota di Apertura', required=True, select=True),
                     'reg_pnt': fields.many2one('account.move', 'Testata Prima Nota di Apertura', required=True, select=True),
-                    'num_reg': fields.related('reg_pnt', 'ref', string='Numero Registrazione', type='char', relation='account.primanota'),
-                    'data_reg': fields.related('reg_pnt', 'date', string='Data Registrazione', type='date', relation='account.primanota'),
+                    'num_reg': fields.related('reg_pnt', 'ref', string='Numero Registrazione', type='char',size=64, relation='account.move'),
+                    'data_reg': fields.related('reg_pnt', 'date', string='Data Registrazione', type='date', relation='account.move'),
                     # 'num_reg': fields.related('reg_pnt', 'number', string='Numero Registrazione', type='char', relation='account.primanota'),
-                    'tipo_documento': fields.related('reg_pnt', 'tipo_documento', string='Tipo Doc', type='char', relation='account.primanota'),
-                    'numero_doc':fields.related('reg_pnt', 'numero_doc', string='Numero Doc', type='char', relation='account.primanota'),
-                    'data_doc':fields.related('reg_pnt', 'data_doc', string='Data Doc', type='date', relation='account.primanota'),
+                    'tipo_documento': fields.related('reg_pnt', 'tipo_documento', string='Tipo Doc', type='char' ,size=64, relation='account.move'),
+                    'numero_doc':fields.related('reg_pnt', 'numero_doc', string='Numero Doc', type='char',size=64, relation='account.move'),
+                    'data_doc':fields.related('reg_pnt', 'data_doc', string='Data Doc', type='date', relation='account.move'),
                     'partner_id': fields.many2one('res.partner', 'Cliente/Fornitore',  states={'posted':[('readonly',True)]}, required=True, select=True),
                     'totale_partita':fields.function(_totali_partita, method=True, digits_compute=dp.get_precision('Account'), string='Totale Partita', store=False, multi='sums'),                
                     'totale_saldo': fields.function(_totali_partita, method=True, digits_compute=dp.get_precision('Account'), string='Totale Saldato', store=False, multi='sums'),
@@ -148,7 +148,27 @@ account_partite_incassi()
 
 class account_move(osv.osv):
     _inherit = "account.move"
+    
+    
+    def _get_datareg(self, cr, uid, context=None):
+        id = self.search(cr, uid,[],order='id desc')
+        if id:
+            #import pdb;pdb.set_trace()
+            return self.browse(cr,uid,[id[len(id)-1]])[0].date
+        else:
+            return lambda *a: time.strftime('%Y-%m-%d')
+        return False
+    
+    def _get_period(self, cr, uid, context=None):
+        dt = self._get_datareg(cr, uid, context)
+        periods = self.pool.get('account.period').find(cr, uid,dt=dt)
+        if periods:
+            return periods[0]
+        return False
+    
+    
     _columns={
+              # 'partner_id': fields.many2one('res.partner', 'Cliente/Fornitore',   required=False, select=True),
               'pagamento_id':fields.many2one('account.payment.term', 'Pagamento', required=False, help="Necessario per le righe che aprono partite"),
               'fiscalyear_id': fields.related('period_id', 'fiscalyear_id', string='Fiscal Year', type='many2one', relation='account.fiscalyear',states={'posted':[('readonly',True)]}),
               'causale_id': fields.many2one('causcont', 'Causale', required=True, select=True,states={'posted':[('readonly',True)]}),
@@ -168,6 +188,11 @@ class account_move(osv.osv):
               'protocollo':fields.integer('Protocollo', states={'posted':[('readonly',True)]}), ## anche qui controllare l'obbligatorietà e la sequenza del n° di protocollo
               
               }
+    
+    _defaults = {
+             'date': _get_datareg,
+             'period_id': _get_period,
+             }    
     
     def check_protocollo(self,cr,uid,ids,causale_id,period_id,date,check,proto,context):
         protocollo = 0
@@ -215,11 +240,17 @@ class account_move(osv.osv):
                         
         return protocollo
     
+    def onchange_date(self,cr,uid,ids,date,context):
+        res ={}        
+        if date:
+            periods = self.pool.get('account.period').find(cr, uid,dt=date)
+            if periods:
+                res['period_id']= periods[0]
 
+        return  {'value':res}
     
     def onchange_causale_id(self,cr,uid,ids,causale_id,period_id,date,context):
-        res ={}
-        
+        res ={}        
         if causale_id:
             causale = self.pool.get('causcont').browse(cr,uid,causale_id)
             res['journal_id'] = causale.journal_id.id
@@ -248,10 +279,13 @@ class account_move(osv.osv):
                     #deve creare una partita                 
                     for move_line in move.line_id:                       
                        conto = False
-                       #import pdb;pdb.set_trace()
+                     #  import pdb;pdb.set_trace()
                        if (not move_line.partita_id) and (not move_line.par_saldi):
                         if move.flag_cliente:
-                            conto = move_line.partner_id.property_account_receivable.id
+                            if move_line.partner_id.property_account_receivable:
+                                conto = move_line.partner_id.property_account_receivable.id
+                            else:
+                                raise osv.except_osv(_('Errore !'), _('Partita Non Creata Per assenza del Pagamento sulla riga del Partner ' + move_line.partner_id.ref ))
                         if move.flag_fornitore:
                             conto = move_line.partner_id.property_account_payable.id
                         if conto == move_line.account_id.id:
@@ -287,10 +321,11 @@ class account_move(osv.osv):
                                 raise osv.except_osv(_('Errore !'), _('Partita Non Creata Per assenza del Pagamento sulla riga del Partner'))
                                             
                 if move.flag_partite=='S':
-                    # deve lanciare un wizard per saldare ci proviamo a lanciare una action e vediamo
+                    # TO DO deve lanciare un wizard per saldare ci proviamo a lanciare una action e vediamo
                             #import pdb;pdb.set_trace()
-                            raise osv.except_osv(_('Errore !'), _('Non è Possibile Saldare le Partite Collegate Usare la Funzione SaldaConto'))
-                            return True
+                            #raise osv.except_osv(_('Errore !'), _('Non è Possibile Saldare le Partite Collegate Usare la Funzione SaldaConto'))
+                            #return True
+                            pass
 #                            return {
 #                                    'name': 'Saldaconto Partner',
 #                                    'view_type': 'form',
@@ -303,8 +338,10 @@ class account_move(osv.osv):
         return res
     
     def button_validate(self, cursor, user, ids, context=None):
-        cr = cursor
-        uid = user
+       cr = cursor
+       uid = user
+       result= False
+       if ids: 
         result = super(account_move, self).button_validate(cr, uid, ids, context)
         #import pdb;pdb.set_trace()
         if result:
@@ -318,10 +355,16 @@ class account_move(osv.osv):
             context = {}
         result = super(account_move, self).create(cr, uid, vals, context)
         if result:
-            ok_prot = self.check_protocollo(cr, uid, [result], vals['causale_id'], vals['period_id'], vals['date'],False,vals['protocollo'], context)
-            if not ok_prot:
-                result = False
+           if vals.get('period_id',False):
+            causale = self.pool.get('causcont').browse(cr,uid, vals['causale_id'])
+            if causale.tipo_registro!='NR':
+                #import pdb;pdb.set_trace()
+                ok_prot = self.check_protocollo(cr, uid, [result], vals['causale_id'], vals['period_id'], vals['date'],False,vals['protocollo'], context)
+                if not ok_prot:
+                    result = False
         return result
+    
+
 
 account_move()
 
@@ -343,6 +386,7 @@ class account_move_line(osv.osv):
                'partita_id':False,
                'par_saldi':False,
                }
+    
     def crea_righe_calcoli(self,lines):
         risultati = {}
         i=0
@@ -458,11 +502,13 @@ class account_move_line(osv.osv):
         #import pdb;pdb.set_trace()
         for riga_reg in self.browse(cr,uid,ids):
           if riga_reg.partita_id:
-            for riga_par in riga_reg.partita_id:
-                ok = self.pool.get('account.partite').unlink(cr,uid,[riga_par.id])
+            # for riga_par in riga_reg.partita_id:
+                ok = self.pool.get('account.partite').unlink(cr,uid,[riga_reg.partita_id.id])
           if riga_reg.par_saldi:
             for riga_par in riga_reg.par_saldi:
-                ok = self.pool.get('account.partite_saldi').unlink(cr,uid,[riga_par.id])            
+                ok = self.pool.get('account.partite_saldi').unlink(cr,uid,[riga_par.id])  
+          
+          
         result = super(account_move_line,self).unlink(cr,uid,ids,context)
         return result
     
