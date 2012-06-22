@@ -36,6 +36,8 @@
                                 <tree  editable="top" string="Dettaglio Scadenze Partita">                        
                                     <field name="scadenza_id" invisible="1" />                                    
                                     <field name="data_scadenza"/>
+                                    <field name="tipo_documento"/>
+                                    
                                     <field name="importo" />
                                     <field name="da_saldare" sum='Totale da Saldare'/>
                                     <field name="saldatt" sum='Totale Saldo Attuale' />

@@ -38,14 +38,14 @@
                         <newline></newline>
                         <field name="data_doc" invisible="0" attrs="{'required':[('flag_ddoc','=','O')],'readonly':[('flag_ddoc','=','N')]}"/>  
                         <field name="num_registro" invisible="1"/>
-                        <field name="registro" invisible="1"/>  
+                        <field name="registro" invisible="1"/>
                         <field name="numero_doc" invisible="0" attrs="{'required':[('flag_ndoc','=','O')],'readonly':[('flag_ndoc','=','N')]}" />    
                         <field name="protocollo" invisible="0" attrs="{'required':[('registro','!=','NR')],'readonly':[('flag_ndoc','=','N')]}"/>   
                        <newline></newline>         
                        <field name="ref" string="Descrizione"/>
                         <field name="period_id"/>                                       
      					<field name="fiscalyear_id" string="Anno Fiscale"/>     
-      					  <field name="registro" invisible="1"/>
+      					  
      					  <field name="tipo_documento" invisible="1"/>     					  	     					  				       					       					  
                        <field name="partner_id"  invisible="0" attrs="{'required':[('registro','!=','NR')],'readonly':[('flag_cliente','=',False),('flag_fornitore','=',False)]}" ></field>
 						<!--                                              domain="[('customer','=',flag_cliente)]" context="{'search_default_customer':flag_cliente}" --> 
@@ -146,17 +146,18 @@
                                 <tree colors="blue:state in ('draft');black:state in ('posted')" editable="top" string="Journal Items">
                                     <field name="ref" invisible="1" />
                                     <field name="invoice" invisible="1"/>
+                                    <field name="causale_id" invisible="1"/>                            
                                     <field name="name" string="Descrizone Riga"/>
                                     <field name="partner_id" on_change="onchange_partner_id(False,partner_id,account_id,debit,credit,parent.date,parent.journal_id)"/>
                                     <field name="account_id" domain="[('journal_id','=',parent.journal_id)]" string="Conto" />
                                     <field name="account_tax_id" invisible="0" />                               
                    				    <field name="tax_code_id" invisible="1" string="Codice Iva"/>
-                   				    <field name="imponibile" invisible="0"/> 
+                   				    <field name="imponibile" invisible="0" on_change="onchange_imponibile(causale_id, partner_id,account_tax_id, imponibile,debit,credit,parent.date,parent.journal_id)"/> 
                                     <field name="tax_amount" invisible="1"/>                                                
                                     <field name="debit" sum="Total Debit"/>
                                     <field name="credit" sum="Total Credit"/>
                                     <field name="totdocumento" invisible="1"/>
-                                    <field name="causale_id" invisible="1"/> 
+
                                     <field name="partita_id" invisible="1"/> 
                                     <field name="par_saldi" invisible="1"/>                                     
                                     <field name="period_id" invisible="1" />

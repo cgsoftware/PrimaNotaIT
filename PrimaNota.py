@@ -55,7 +55,9 @@ class account_partite(osv.osv):
                     'reg_pnt': fields.many2one('account.move', 'Testata Prima Nota di Apertura', required=True, select=True),
                     'num_reg': fields.related('reg_pnt', 'ref', string='Numero Registrazione', type='char',size=64, relation='account.move'),
                     'data_reg': fields.related('reg_pnt', 'date', string='Data Registrazione', type='date', relation='account.move'),
+                    'causale_id':fields.related('reg_pnt', 'causale_id', string='Causale di riga', type='many2one', relation='causcont'),
                     # 'num_reg': fields.related('reg_pnt', 'number', string='Numero Registrazione', type='char', relation='account.primanota'),
+                    'flag_saldata':fields.boolean('Saldata', required=False), # per comodità di gestioni future aggiunto il flag saldata TO DO
                     'tipo_documento': fields.related('reg_pnt', 'tipo_documento', string='Tipo Doc', type='char' ,size=64, relation='account.move'),
                     'numero_doc':fields.related('reg_pnt', 'numero_doc', string='Numero Doc', type='char',size=64, relation='account.move'),
                     'data_doc':fields.related('reg_pnt', 'data_doc', string='Data Doc', type='date', relation='account.move'),
@@ -127,6 +129,7 @@ class account_partite_scadenze(osv.osv):
                     'saldato': fields.function(_totali_saldato, method=True, digits_compute=dp.get_precision('Account'), string='Saldato', store=False, multi='sums'),
                     'da_saldare':fields.function(_totali_saldato, method=True, digits_compute=dp.get_precision('Account'), string='Da Saldare', store=False, multi='sums'),
                     'par_saldi': fields.one2many('account.partite_saldi', 'name', 'Dettaglio Righe Saldi'),
+                    'flag_saldata':fields.boolean('Saldata', required=False), # per comodità di gestioni future aggiunto il flag saldata da gestire TO Do
                     
                     }
 
@@ -156,7 +159,7 @@ class account_move(osv.osv):
             #import pdb;pdb.set_trace()
             return self.browse(cr,uid,[id[len(id)-1]])[0].date
         else:
-            return lambda *a: time.strftime('%Y-%m-%d')
+            return  time.strftime('%Y-%m-%d')
         return False
     
     def _get_period(self, cr, uid, context=None):
@@ -349,6 +352,13 @@ class account_move(osv.osv):
             result = self.check_partite(cr,uid,ids,context)
             #import pdb;pdb.set_trace()
         return result
+    
+    def button_cancel(self, cr, uid, ids, context=None):
+
+        
+        result = super(account_move, self).button_cancel(cr, uid, ids, context)
+        
+        return True
 
     def create(self, cr, uid, vals, context=None):
         if context is None:
@@ -443,7 +453,7 @@ class account_move_line(osv.osv):
                             data['account_tax_id']=righe_auto[riga].tax_code_id.id
                             if righe_auto[riga].flag_scorporo:
                                 # deve scorpoprare l'iva
-                                imposta = importo / (1+righe_auto[riga].tax_code_id.amount)
+                                imposta = importo-(importo / (1+righe_auto[riga].tax_code_id.amount))
                                 imponibile = importo - imposta
                                 data['imponibile']=imponibile                                
                             else:
@@ -484,6 +494,30 @@ class account_move_line(osv.osv):
         data = super(account_move_line, self)._default_get(cr, uid, fields, context=context)
         #import pdb;pdb.set_trace()
         return data
+
+    def onchange_imponibile(self, cr, uid, ids, causale_id, partner_id,account_tax_id, imponibile,account_id=None, debit=0, credit=0, date=False, journal=False):
+        warning= {}
+        val={}
+        if account_tax_id and causale_id:
+            tax = self.pool.get('account.tax').browse(cr,uid,account_tax_id)
+            imposta = imponibile*tax.amount
+            causale =  self.pool.get('causcont').browse(cr,uid,causale_id)
+            if causale.segno_conto_iva=='DA':
+               #segno dare
+                val['credit']=0
+                val['debit']=imposta       
+            else:
+                 #segno dare
+                 val['credit']=imposta
+                 val['debit']=0       
+        else:
+          #  warning = {
+          #             'title': 'ATTENZIONE !',
+          #              'message':'Campo Utilizzabile solo per Righe Iva ',                                   
+          #                          }
+            val['imponibile']=0
+            
+        return {'value':val,'warning':warning}   
     
     def onchange_partner_id(self, cr, uid, ids, move_id, partner_id, account_id=None, debit=0, credit=0, date=False, journal=False):    
         res = super(account_move_line,self).onchange_partner_id(cr, uid, ids, move_id, partner_id, account_id, debit, credit, date, journal)
