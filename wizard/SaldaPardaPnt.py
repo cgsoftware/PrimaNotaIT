@@ -178,6 +178,8 @@ class salda_partite(osv.osv_memory):
            period_id = res.get('value',False)
            re = self.pool.get('account.move').onchange_causale_id(cr,uid,ids,testa.causale_id.id,period_id['period_id'],testa.date,context)
            regi.update(re.get('value',False))
+           regi.update(period_id)
+           #import pdb;pdb.set_trace()
            id_reg = self.pool.get('account.move').create(cr,uid,regi,context)
         if id_reg:
            elenco_righe = []
